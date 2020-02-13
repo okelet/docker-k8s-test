@@ -35,8 +35,8 @@ def index():
 
 @app.route('/hello')
 def hello():
-    return "Hello!"
+    return "Hello!\n"
 
 @app.route('/hello/<name>')
 def hello_name(name):
-    return f"Hello {name}!"
+    return f"Hello {name}!\n"
