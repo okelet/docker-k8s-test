@@ -53,7 +53,7 @@ def backend():
     if not backend_url:
         return "BACKEND_URL not set\n"
 
-    response = requests.get(backend_url).text
+    response = requests.get(backend_url, timeout=5).text
     if not response.endswith("\n"):
         response = f"{response}\n"
     return Response(
