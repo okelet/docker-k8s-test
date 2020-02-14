@@ -3,6 +3,7 @@ import os
 import socket
 
 from flask import Flask, Response, send_from_directory
+import requests
 
 from prefix_middleware import PrefixMiddleware
 
@@ -40,3 +41,18 @@ def hello():
 @app.route('/hello/<name>')
 def hello_name(name):
     return f"Hello {name}!\n"
+
+@app.route('/backend')
+def backend():
+
+    backend_url = os.environ.get("BACKEND_URL")
+    if not backend_url:
+        return "BACKEND_URL not set\n"
+
+    response = requests.get(backend_url).text
+    if not response.endswith("\n"):
+        response = f"{response}\n"
+    return Response(
+        f"Response from backend:\n{response}",
+        mimetype='text/plain'
+    )
