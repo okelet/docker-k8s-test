@@ -34,6 +34,10 @@ def index():
         mimetype='text/plain'
     )
 
+@app.route('/healthcheck')
+def healthcheck():
+    return "OK\n"
+
 @app.route('/hello')
 def hello():
     return "Hello!\n"
