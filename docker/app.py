@@ -16,7 +16,8 @@ if app_prefix:
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app_prefix)
 
 index_info = """Hello, World!
-Hostname is {hostname}
+Hostname is {host_name}
+IP is {host_ip}
 Date/Time is {dt}
 """
 
@@ -26,11 +27,24 @@ def favicon():
 
 @app.route('/')
 def index():
+    host_name = socket.gethostname()
+    host_ip = socket.gethostbyname(host_name)
     return Response(
         index_info.format(
-            hostname=socket.gethostname(),
+            host_name=host_name,
+            host_ip=host_ip,
             dt=datetime.now()
         ),
+        mimetype='text/plain'
+    )
+
+@app.route('/env')
+def env():
+    data = "Environment:\n"
+    for item, value in os.environ.items():
+        data += f"{item} => {value}\n"
+    return Response(
+        data,
         mimetype='text/plain'
     )
 
