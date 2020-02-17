@@ -60,14 +60,25 @@ def hello():
 def hello_name(name):
     return f"Hello {name}!\n"
 
-@app.route('/backend')
-def backend():
+@app.route('/backend', defaults={'custom_route': None})
+@app.route('/backend/<path:custom_route>')
+def backend(custom_route):
 
     backend_url = os.environ.get("BACKEND_URL")
     if not backend_url:
         return "BACKEND_URL not set\n"
 
-    response = requests.get(backend_url, timeout=5).text
+    if not backend_url.endswith("/"):
+        backend_url = f"{backend_url}/"
+
+    backend_path = ""
+    if custom_route:
+        # Remove the / from the start (we have already added to the backend URL)
+        if custom_route.startswith("/"):
+            custom_route = custom_route[1:]
+        backend_path = custom_route
+
+    response = requests.get(f"{backend_url}{backend_path}", timeout=5).text
     if not response.endswith("\n"):
         response = f"{response}\n"
     return Response(
