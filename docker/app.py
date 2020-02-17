@@ -70,17 +70,16 @@ def backend(custom_route):
         return "BACKEND_URL not set\n"
 
     if not backend_url.endswith("/"):
-        backend_url = f"{backend_url}/"
+        backend_url += "/"
 
-    backend_path = ""
     if custom_route:
         # Remove the / from the start (we have already added to the backend URL)
         if custom_route.startswith("/"):
             custom_route = custom_route[1:]
-        backend_path = custom_route
+        backend_url += custom_route
 
     try:
-        response = requests.get(f"{backend_url}{backend_path}", timeout=5).text
+        response = requests.get(backend_url, timeout=5).text
         if not response.endswith("\n"):
             response = f"{response}\n"
         return Response(
@@ -90,6 +89,6 @@ def backend(custom_route):
     except Exception as ex:
         trace = format_exc(ex)
         return Response(
-            f"ERROR:\n{str(ex)}\n{trace}\n",
+            f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
             mimetype='text/plain'
         )
