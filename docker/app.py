@@ -87,7 +87,7 @@ def backend(custom_route):
             mimetype='text/plain'
         )
     except Exception as ex:
-        trace = format_exc(ex)
+        trace = format_exc()
         return Response(
             f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
             mimetype='text/plain'
