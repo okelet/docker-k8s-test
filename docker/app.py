@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import socket
+from traceback import format_exc
 
 from flask import Flask, Response, send_from_directory
 import requests
@@ -78,10 +79,17 @@ def backend(custom_route):
             custom_route = custom_route[1:]
         backend_path = custom_route
 
-    response = requests.get(f"{backend_url}{backend_path}", timeout=5).text
-    if not response.endswith("\n"):
-        response = f"{response}\n"
-    return Response(
-        f"Response from backend:\n{response}",
-        mimetype='text/plain'
-    )
+    try:
+        response = requests.get(f"{backend_url}{backend_path}", timeout=5).text
+        if not response.endswith("\n"):
+            response = f"{response}\n"
+        return Response(
+            f"Response from backend:\n{response}",
+            mimetype='text/plain'
+        )
+    except Exception as ex:
+        trace = format_exc(ex)
+        return Response(
+            f"ERROR:\n{str(ex)}\n{trace}\n",
+            mimetype='text/plain'
+        )
