@@ -3,10 +3,15 @@ import os
 import socket
 from traceback import format_exc
 
-from flask import Flask, Response, send_from_directory
+from aws_xray_sdk.core import xray_recorder, patch
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+from flask import Flask, Response, send_from_directory, request
 import requests
 
 from prefix_middleware import PrefixMiddleware
+
+libs_to_patch = ('boto3', 'requests')
+patch(libs_to_patch)
 
 app = Flask(__name__)
 
@@ -16,15 +21,20 @@ if app_prefix:
         app_prefix = f"/{app_prefix}"
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app_prefix)
 
+xray_recorder.configure(service='my_app_name')
+XRayMiddleware(app, xray_recorder)
+
 index_info = """Hello, World!
 Hostname is {host_name}
 IP is {host_ip}
 Date/Time is {dt}
 """
 
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 
 @app.route('/')
 def index():
@@ -39,6 +49,7 @@ def index():
         mimetype='text/plain'
     )
 
+
 @app.route('/env')
 def env():
     data = "Environment:\n"
@@ -49,19 +60,35 @@ def env():
         mimetype='text/plain'
     )
 
+
 @app.route('/healthcheck')
 def healthcheck():
     return "OK\n"
+
+
+@app.route('/headers')
+def headers():
+    text = ""
+    for key, val in dict(request.headers).items():
+        text += f"{key} = {val}\n"
+    return Response(
+        text,
+        mimetype='text/plain'
+    )
+
 
 @app.route('/hello')
 def hello():
     return "Hello!\n"
 
+
 @app.route('/hello/<name>')
 def hello_name(name):
     return f"Hello {name}!\n"
 
+
 @app.route('/backend', defaults={'custom_route': None})
+@app.route('/backend/', defaults={'custom_route': None})
 @app.route('/backend/<path:custom_route>')
 def backend(custom_route):
 
