@@ -153,3 +153,23 @@ def metadata(custom_route):
             f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
             mimetype='text/plain'
         )
+
+
+@app.route('/proxy/<str:protocol>/<str:domain>/<path:custom_route>')
+def proxy(protocol, domain, custom_route):
+
+    backend_url = f"{protocol}://{domain}/{custom_route}"
+    try:
+        response = requests.get(backend_url, timeout=5).text
+        if not response.endswith("\n"):
+            response = f"{response}\n"
+        return Response(
+            f"Response from {backend_url}:\n{response}",
+            mimetype='text/plain'
+        )
+    except Exception as ex:
+        trace = format_exc()
+        return Response(
+            f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
+            mimetype='text/plain'
+        )
