@@ -21,7 +21,7 @@ if app_prefix:
         app_prefix = f"/{app_prefix}"
     app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix=app_prefix)
 
-xray_recorder.configure(service='my_app_name')
+xray_recorder.configure(service=os.environ.get("DEPLOYMENT") or "NO_SERVICE_NAME")
 XRayMiddleware(app, xray_recorder)
 
 index_info = """Hello, World!
