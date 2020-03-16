@@ -155,7 +155,7 @@ def metadata(custom_route):
         )
 
 
-@app.route('/proxy/<str:protocol>/<str:domain>/<path:custom_route>')
+@app.route('/proxy/<string:protocol>/<string:domain>/<path:custom_route>')
 def proxy(protocol, domain, custom_route):
 
     backend_url = f"{protocol}://{domain}/{custom_route}"
