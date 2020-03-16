@@ -1,8 +1,19 @@
 FROM python:3.8-alpine
 
+USER 0
+
+RUN apk add bash curl gcc musl-dev libffi-dev openssl-dev postgresql-dev && \
+    addgroup webapp -g 1000 && \
+    adduser webapp -G webapp -u 1000 -g webapp -D
+
+USER 1000
+
 WORKDIR /app
-COPY . /app
-RUN pip3 install -r requirements.txt
+ENV PATH=$PATH:/home/webapp/.local/bin
+
+COPY --chown=webapp:webapp . /app
+RUN pip3 install pipenv --user && \
+    pipenv install
 
 EXPOSE 8000
 

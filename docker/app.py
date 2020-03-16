@@ -119,3 +119,37 @@ def backend(custom_route):
             f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
             mimetype='text/plain'
         )
+
+
+@app.route('/metadata', defaults={'custom_route': None})
+@app.route('/metadata/', defaults={'custom_route': None})
+@app.route('/metadata/<path:custom_route>')
+def metadata(custom_route):
+
+    backend_url = os.environ.get("ECS_CONTAINER_METADATA_URI")
+    if not backend_url:
+        return "ECS_CONTAINER_METADATA_URI not set\n"
+
+    if not backend_url.endswith("/"):
+        backend_url += "/"
+
+    if custom_route:
+        # Remove the / from the start (we have already added to the backend URL)
+        if custom_route.startswith("/"):
+            custom_route = custom_route[1:]
+        backend_url += custom_route
+
+    try:
+        response = requests.get(backend_url, timeout=5).text
+        if not response.endswith("\n"):
+            response = f"{response}\n"
+        return Response(
+            f"Response from {backend_url}:\n{response}",
+            mimetype='text/plain'
+        )
+    except Exception as ex:
+        trace = format_exc()
+        return Response(
+            f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
+            mimetype='text/plain'
+        )
