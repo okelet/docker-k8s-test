@@ -211,32 +211,28 @@ def db():
     if not os.getenv("RDS_PASS"):
         return "RDS_PASS not set\n"
 
-    port = None
+    port = 3306
+    parts = os.getenv("RDS_HOST").split(":")
+    if len(parts) == 2:
+        host = parts[0]
+        port = int(parts[1])
+
     if os.getenv("RDS_PORT"):
         port = int(os.getenv("RDS_PORT"))
-    else:
-        parts = os.getenv("RDS_HOST").split(":")
-        if len(parts) == 2:
-            host = parts[0]
-            port = int(parts[1])
 
-    if not port:
-        port = 3306
-
-    mydb = mysql_connector.connect(
+    db_conn = mysql_connector.connect(
         host=host,
         port=port,
         user=os.getenv("RDS_USER"),
         passwd=os.getenv("RDS_PASS")
     )
 
-    cursor = mydb.cursor()
-    databases = ("show databases")
-    cursor.execute(databases)
+    cursor = db_conn.cursor()
+    cursor.execute("show databases")
     dbs = []
     for (databases) in cursor:
         dbs.append(databases[0])
-
-    mydb.close()
+    cursor.close()
+    db_conn.close()
 
     return jsonify(dbs)
