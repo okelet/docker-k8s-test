@@ -10,6 +10,7 @@ gunicorn = "*"
 requests = "*"
 Flask = "*"
 aws-xray-sdk = "*"
+boto3 = "*"
 
 [requires]
 python_version = "3.6"

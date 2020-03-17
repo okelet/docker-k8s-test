@@ -1,8 +1,11 @@
+import json
 from datetime import datetime
 import os
 import socket
+from pprint import pformat
 from traceback import format_exc
 
+import boto3 as boto3
 from aws_xray_sdk.core import xray_recorder, patch
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from flask import Flask, Response, send_from_directory, request
@@ -173,3 +176,21 @@ def proxy(protocol, domain, custom_route):
             f"ERROR in request to {backend_url}:\n{str(ex)}\n{trace}\n",
             mimetype='text/plain'
         )
+
+
+@app.route('/dynamo')
+@app.route('/dynamodb')
+def dynamodb():
+
+    if not os.getenv("DYNAMODB_TABLE_NAME"):
+        return "DYNAMODB_TABLE_NAME not set\n"
+
+    db_conn = boto3.resource('dynamodb')
+    data = ""
+    for item in db_conn.Table(os.getenv("DYNAMODB_TABLE_NAME")).scan().get("Items"):
+        data += json.dumps(item) + "\n"
+
+    return Response(
+        data,
+        mimetype='text/plain'
+    )
