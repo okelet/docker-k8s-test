@@ -1,4 +1,0 @@
-flask
-gunicorn
-requests
-aws-xray-sdk

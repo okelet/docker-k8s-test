@@ -110,7 +110,7 @@ def backend(custom_route):
         if not response.endswith("\n"):
             response = f"{response}\n"
         return Response(
-            f"Response from backend:\n{response}",
+            f"Response from {backend_url}:\n{response}",
             mimetype='text/plain'
         )
     except Exception as ex:
