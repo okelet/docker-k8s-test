@@ -6,16 +6,15 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      working-directory: ./docker
 
     steps:
 
     - uses: actions/checkout@master
 
     - name: Publish to Registry
-      uses: HurricanKai/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: okelet/flasktest
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        workdir: docker
