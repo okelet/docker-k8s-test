@@ -2,14 +2,14 @@ import json
 from datetime import datetime
 import os
 import socket
-from pprint import pformat
 from traceback import format_exc
 
 import boto3 as boto3
 from aws_xray_sdk.core import xray_recorder, patch
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
-from flask import Flask, Response, send_from_directory, request
+from flask import Flask, Response, send_from_directory, request, jsonify
 import requests
+from mysql import connector as mysql_connector
 
 from prefix_middleware import PrefixMiddleware
 
@@ -179,7 +179,6 @@ def proxy(protocol, domain, custom_route):
 
 
 @app.route('/dynamo')
-@app.route('/dynamodb')
 def dynamodb():
 
     if not os.getenv("DYNAMODB_TABLE_NAME"):
@@ -194,3 +193,31 @@ def dynamodb():
         data,
         mimetype='text/plain'
     )
+
+
+@app.route('/db')
+def db():
+
+    if not os.getenv("RDS_HOST"):
+        return "RDS_HOST not set\n"
+
+    if not os.getenv("RDS_USER"):
+        return "RDS_USER not set\n"
+
+    if not os.getenv("RDS_PASS"):
+        return "RDS_PASS not set\n"
+
+    mydb = mysql_connector.connect(
+        host=os.getenv("RDS_HOST"),
+        user=os.getenv("RDS_USER"),
+        passwd=os.getenv("RDS_PASS")
+    )
+
+    cursor = mydb.cursor()
+    databases = ("show databases")
+    cursor.execute(databases)
+    dbs = []
+    for (databases) in cursor:
+        dbs.append(databases[0])
+
+    return jsonify(dbs)
