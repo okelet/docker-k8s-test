@@ -7,6 +7,7 @@ from traceback import format_exc
 import boto3 as boto3
 from aws_xray_sdk.core import xray_recorder, patch
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+from dotenv import load_dotenv
 from flask import Flask, Response, send_from_directory, request, jsonify
 import requests
 from mysql import connector as mysql_connector
@@ -15,6 +16,8 @@ from prefix_middleware import PrefixMiddleware
 
 libs_to_patch = ('boto3', 'requests')
 patch(libs_to_patch)
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -200,6 +203,7 @@ def db():
 
     if not os.getenv("RDS_HOST"):
         return "RDS_HOST not set\n"
+    host = os.getenv("RDS_HOST")
 
     if not os.getenv("RDS_USER"):
         return "RDS_USER not set\n"
@@ -207,8 +211,21 @@ def db():
     if not os.getenv("RDS_PASS"):
         return "RDS_PASS not set\n"
 
+    port = None
+    if os.getenv("RDS_PORT"):
+        port = int(os.getenv("RDS_PORT"))
+    else:
+        parts = os.getenv("RDS_HOST").split(":")
+        if len(parts) == 2:
+            host = parts[0]
+            port = int(parts[1])
+
+    if not port:
+        port = 3306
+
     mydb = mysql_connector.connect(
-        host=os.getenv("RDS_HOST"),
+        host=host,
+        port=port,
         user=os.getenv("RDS_USER"),
         passwd=os.getenv("RDS_PASS")
     )
@@ -219,5 +236,7 @@ def db():
     dbs = []
     for (databases) in cursor:
         dbs.append(databases[0])
+
+    mydb.close()
 
     return jsonify(dbs)
